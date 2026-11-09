@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 import os
-import aiohttp
+from aiohttp import web
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
@@ -183,7 +183,6 @@ async def cb_check_api(callback: types.CallbackQuery):
 
 @dp.message(F.text & ~F.text.startswith("/"))
 async def handle_text_inputs(message: types.Message):
-    # যদি এডমিন টেক্সট হিসেবে API key পাঠায় সেটি সেভ করার জন্য
     if len(message.text) > 15 and " " not in message.text:
         set_db_setting("api_key", message.text.strip())
         await message.reply(f"✅ সফলভাবে নতুন API Key সেভ করা হয়েছে:\n`{message.text.strip()}`", parse_mode="Markdown")
@@ -197,10 +196,12 @@ async def web_server():
     app.router.add_get("/", handle_ping)
     runner = web.AppRunner(app)
     await runner.setup()
-    port = int(os.environ.get("PORT", 8000))
+    
+    port = int(os.environ.get("PORT", 10000))
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
 
+# --- মেইন রান ফাংশন ---
 async def main():
     await web_server()
     await dp.start_polling(bot)
