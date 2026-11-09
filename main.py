@@ -1,6 +1,7 @@
 import logging
 import sqlite3
 import os
+import aiohttp
 from aiohttp import web
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
@@ -94,7 +95,8 @@ async def fetch_number_from_panel(service_name):
     if not api_key or api_key == "YOUR_API_KEY_HERE":
         return "⚠️ ত্রুটি: অ্যাডমিন প্যানেল থেকে কোনো বৈধ API Key সেট করা হয়নি।"
     
-    url = f"https://api.voltex.uz/v1/number?api_key={api_key}&service={service_name}"
+    # Zenex Network API URL (আপনার প্যানেল অনুযায়ী)
+    url = f"https://zenexnetwork.com/api/v1/number?api_key={api_key}&service={service_name}"
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url, timeout=10) as response:
