@@ -30,7 +30,7 @@ def init_db():
             value TEXT
         )
     """)
-    cursor.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('api_key', 'YOUR_API_KEY_HERE')")
+    cursor.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('api_key', 'ZNX_LF178UCH2NIJDSBE0WKJ50LY')")
     cursor.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('bot_status', 'active')")
     conn.commit()
     conn.close()
@@ -66,7 +66,7 @@ def get_user_data(user_id: int):
         conn.close()
         return (0.0, 0)
 
-# --- মূল রিপ্লাই কিবোর্ড (নিচে স্থায়ী বাটন) ---
+# --- মূল রিপ্লাই কিবোর্ড ---
 def main_reply_keyboard():
     return ReplyKeyboardMarkup(
         keyboard=[
@@ -95,18 +95,23 @@ async def fetch_number_from_panel(service_name):
     if not api_key or api_key == "YOUR_API_KEY_HERE":
         return "⚠️ ত্রুটি: অ্যাডমিন প্যানেল থেকে কোনো বৈধ API Key সেট করা হয়নি।"
     
-    # Zenex Network API URL (আপনার প্যানেল অনুযায়ী)
-    url = f"https://zenexnetwork.com/api/v1/number?api_key={api_key}&service={service_name}"
+    url = f"https://zenexnetwork.com/api/v1/number?service={service_name}"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Accept": "application/json"
+    }
+    
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=10) as response:
+            async with session.get(url, headers=headers, timeout=10) as response:
                 if response.status == 200:
                     data = await response.json()
                     phone = data.get("number", "N/A")
                     order_id = data.get("id", "N/A")
                     return f"✅ **{service_name} Number Generated:**\n📞 Number: `{phone}`\n🆔 Order ID: `{order_id}`\n⏳ Waiting for SMS..."
                 else:
-                    return f"❌ প্যানেল থেকে নাম্বার আনতে ব্যর্থ (Error: {response.status})"
+                    text_err = await response.text()
+                    return f" আনতে ব্যর্থ (Error: {response.status})\nDetails: {text_err[:100]}"
     except Exception as e:
         return f"🚨 API কানেকশনে সমস্যা হয়েছে: {str(e)}"
 
@@ -191,7 +196,7 @@ async def handle_text_inputs(message: types.Message):
 
 # --- Render ওয়েব সার্ভার ---
 async def handle_ping(request):
-    return web.Response(text="Bot is running successfully!")
+    return web.Response(text="Bot is running smoothly!")
 
 async def web_server():
     app = web.Application()
@@ -211,3 +216,4 @@ async def main():
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
+
