@@ -30,6 +30,7 @@ def init_db():
             value TEXT
         )
     """)
+    # সরাসরি আপনার Zenex API Key এখানে সেট করা হলো
     cursor.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('api_key', 'ZNX_LF178UCH2NIJDSBE0WKJ50LY')")
     cursor.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('bot_status', 'active')")
     conn.commit()
@@ -89,21 +90,18 @@ async def cmd_start(message: types.Message):
         reply_markup=main_reply_keyboard()
     )
 
-# --- প্যানেল থেকে নাম্বার আনার ফাংশন ---
+# --- প্যানেল থেকে নাম্বার আনার ফাংশন (Zenex URL Param Method) ---
 async def fetch_number_from_panel(service_name):
     api_key = get_db_setting("api_key")
     if not api_key or api_key == "YOUR_API_KEY_HERE":
         return "⚠️ ত্রুটি: অ্যাডমিন প্যানেল থেকে কোনো বৈধ API Key সেট করা হয়নি।"
     
-    url = f"https://zenexnetwork.com/api/v1/number?service={service_name}"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json"
-    }
+    # Zenex প্যানেলের সঠিক নিয়ম অনুযায়ী api_key ইউআরএলেই পাঠানো হচ্ছে
+    url = f"https://zenexnetwork.com/api/v1/number?api_key={api_key}&service={service_name}"
     
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, timeout=10) as response:
+            async with session.get(url, timeout=10) as response:
                 if response.status == 200:
                     data = await response.json()
                     phone = data.get("number", "N/A")
@@ -111,7 +109,7 @@ async def fetch_number_from_panel(service_name):
                     return f"✅ **{service_name} Number Generated:**\n📞 Number: `{phone}`\n🆔 Order ID: `{order_id}`\n⏳ Waiting for SMS..."
                 else:
                     text_err = await response.text()
-                    return f" আনতে ব্যর্থ (Error: {response.status})\nDetails: {text_err[:100]}"
+                    return f"❌ নাম্বার আনতে ব্যর্থ (Error: {response.status})\nDetails: {text_err[:100]}"
     except Exception as e:
         return f"🚨 API কানেকশনে সমস্যা হয়েছে: {str(e)}"
 
@@ -216,4 +214,3 @@ async def main():
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
-
